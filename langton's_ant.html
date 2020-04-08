@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>La Fourmi De Langton</title>
+    <style type="text/css">
+        #can {
+            border: 1px solid white;
+            margin-top: 80px;
+        }
+        span{
+            position: fixed;
+            z-index: 100;
+            top: 100px;
+            font-size: 20px;
+            background: rgba(255, 255, 255, 0.883);
+        }
+        .iter{
+            left: 20px;
+        }
+        .num{
+            left: 110px;
+        }
+        .btn{
+            position: absolute;
+            top: 10px;
+            left: 30px;
+        }
+        #ra{
+            position: absolute;
+            top: 10px;
+            left: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <button  class="btn" onclick="boom()">Start ! </button>
+    <input type="range" id="ra" max="30" min="5">
+    <span class="iter">iterations : </span><span class="num" id="s">0</span>
+    <canvas id="can"></canvas>
+
+</body>
+
+</html>
+
+<script>
+    let ant = new Image()
+    let can = document.querySelector("#can");
+    let ctx = can.getContext("2d");
+    can.width = window.innerWidth + 600;
+    can.height = window.innerHeight + 600;
+
+    function Fourmi(much) {
+        let scale = much;
+        let allHeight = Math.round(can.height / scale);
+        let allWidth = Math.round(can.width / scale);
+        let grid = [];
+        let ant = new Image(scale, scale);
+        ant.src = "fourmi_de_langton/ant.png";
+        let arrow = new Image(scale, scale);
+        arrow.src = "fourmi_de_langton/arrow.png";
+        let ant_po = { x: Math.round(allWidth / 2) * scale, y: Math.round(allHeight / 2) * scale }
+        let direction = "";
+        let dirHead = "up";
+        let interval;
+        let a = 0;
+
+        function createGrid() {
+            for (let i = 0; i < allWidth; i++) {
+                grid[i] = [];
+                for (let j = 0; j < allHeight; j++) {
+                    grid[i][j] = { x: i * scale, y: j * scale, color: "white" };
+                }
+            }
+        }
+        function drawGrid() {
+            if (scale > 15) {
+                for (let i = 0; i < grid.length; i++) {
+                    for (let j = 0; j < allHeight; j++) {
+                        ctx.strokeStyle = "black";
+                        ctx.strokeRect(grid[i][j].x, grid[i][j].y, scale, scale);
+                    }
+                }
+
+                ant.onload = function () {
+                    ctx.drawImage(ant, ant_po.x, ant_po.y, scale, scale);
+                }
+            } else {
+                arrow.onload = function () {
+                    ctx.drawImage(arrow, ant_po.x, ant_po.y, scale, scale);
+                }
+            }
+        }
+
+        function drawAnt() {
+            if(scale > 15){
+                if(dirHead == "up"){
+                    ant.src = "fourmi_de_langton/ant.png";
+                    ctx.drawImage(ant, ant_po.x, ant_po.y, scale - 2, scale - 2);
+                } else if(dirHead == "down"){
+                    ant.src = "fourmi_de_langton/ant_d.png";
+                    ctx.drawImage(ant, ant_po.x, ant_po.y, scale - 2, scale - 2);
+                } else if(dirHead == "left"){
+                    ant.src = "fourmi_de_langton/ant_l.png";
+                    ctx.drawImage(ant, ant_po.x, ant_po.y, scale - 2, scale - 2);
+                } else if(dirHead == "right"){
+                    ant.src = "fourmi_de_langton/ant_r.png";
+                    ctx.drawImage(ant, ant_po.x, ant_po.y, scale - 2, scale - 2);
+                }
+            }else {
+                if(dirHead == "up"){
+                    arrow.src = "fourmi_de_langton/arrow.png";
+                    ctx.drawImage(arrow, ant_po.x, ant_po.y, scale - 2, scale - 2);
+                } else if(dirHead == "down"){
+                    arrow.src = "fourmi_de_langton/arrow_d.png";
+                    ctx.drawImage(arrow, ant_po.x, ant_po.y, scale - 2, scale - 2);
+                } else if(dirHead == "left"){
+                    arrow.src = "fourmi_de_langton/arrow_l.png";
+                    ctx.drawImage(arrow, ant_po.x, ant_po.y, scale - 2, scale - 2);
+                } else if(dirHead == "right"){
+                    arrow.src = "fourmi_de_langton/arrow_r.png";
+                    ctx.drawImage(arrow, ant_po.x, ant_po.y, scale - 2, scale - 2);
+                }
+            }
+        }
+
+        function setdir() {
+            if (grid[ant_po.x / scale][ant_po.y / scale].color == "white") {
+                direction = "right";
+            } else {
+                direction = "left";
+            }
+        }
+
+        function move(W_x, W_y, B_x, B_y) {
+            if (scale > 15) {
+                ctx.clearRect(ant_po.x + 1, ant_po.y + 1, scale - 2, scale - 2);
+            } else {
+                ctx.clearRect(ant_po.x, ant_po.y, scale, scale);
+            }
+            setdir();
+            if (direction == "right") {
+                reverseColor();
+                ctx.fillStyle = "black";
+                if (scale > 15) {
+                    ctx.fillRect(ant_po.x + 1, ant_po.y + 1, scale - 2, scale - 2);
+                } else {
+                    ctx.fillRect(ant_po.x, ant_po.y, scale, scale);
+                }
+                ant_po.x = ant_po.x + W_x * scale;
+                ant_po.y = ant_po.y + W_y * scale;
+                drawAnt();
+            } else if (direction == "left") {
+                reverseColor();
+                ctx.fillStyle = "white";
+                if (scale > 15) {
+                    ctx.fillRect(ant_po.x + 1, ant_po.y + 1, scale - 2, scale - 2);
+                } else {
+                    ctx.fillRect(ant_po.x, ant_po.y, scale, scale);
+                }
+                ant_po.x = ant_po.x + B_x * scale;
+                ant_po.y = ant_po.y + B_y * scale;
+                drawAnt();
+            }
+        }
+
+        function reverseColor() {
+            if (grid[ant_po.x / scale][ant_po.y / scale].color == "white") {
+                grid[ant_po.x / scale][ant_po.y / scale].color = "black";
+            } else {
+                grid[ant_po.x / scale][ant_po.y / scale].color = "white";
+            }
+        }
+
+        function setdirHead() {
+            if (direction == "right") {
+                switch (dirHead) {
+                    case "up":
+                        dirHead = "right"
+                        break;
+                    case "right":
+                        dirHead = "down"
+                        break;
+                    case "down":
+                        dirHead = "left"
+                        break;
+                    case "left":
+                        dirHead = "up"
+                        break;
+                }
+            } else if (direction == "left") {
+                switch (dirHead) {
+                    case "up":
+                        dirHead = "left"
+                        break;
+                    case "left":
+                        dirHead = "down"
+                        break;
+                    case "down":
+                        dirHead = "right"
+                        break;
+                    case "right":
+                        dirHead = "up"
+                        break;
+                }
+            }
+        }
+
+        this.Start = function () {
+            ctx.clearRect(0, 0, can.wiidth, can.height);
+            createGrid();
+            drawGrid();
+            interval = setInterval(() => {
+                a++;
+                border();
+                document.getElementById("s").innerHTML = a;
+                switch (dirHead) {
+                    case "up":
+                        move(1, 0, -1, 0);
+                        setdirHead();
+                        break;
+
+                    case "down":
+                        move(-1, 0, 1, 0);
+                        setdirHead();
+                        break;
+
+                    case "left":
+                        move(0, -1, 0, 1);
+                        setdirHead();
+                        break;
+
+                    case "right":
+                        move(0, 1, 0, -1);
+                        setdirHead();
+                        break;
+                }
+            }, 100);
+        }
+
+        function border() {
+            if (ant_po.x == Math.round(allWidth) * scale || ant_po.y == Math.round(allHeight) * scale || ant_po.x == 0 || ant_po.y == 0) {
+                clearInterval(interval);
+                alert("oops !, sorry that's the end of it !");
+            }
+        }
+
+    }
+function boom(){
+    let much = document.getElementById("ra").value;
+    console.log(much);
+    const my_ant = new Fourmi(much);
+    my_ant.Start();
+}
+
+</script>
